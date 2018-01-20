@@ -23,9 +23,9 @@
       </div>
       <div class="music-list-result" v-if="listShow">
         <div class="music-search">
-          <input v-model="musicName" type="text" placeholder="输入歌名回车搜索" @keyup.enter="musicSearch">
-          <div v-if="searchShow" style="float:right;cursor:pointer;" @click="searchShow=false">取消</div>
-          <div v-if="!searchShow" style="float:right;cursor:pointer;" @click.stop="listShow=false">取消</div>
+          <input v-model="musicName" type="text" placeholder="Search Music" @keyup.enter="musicSearch">
+          <div v-if="searchShow" style="float:right;cursor:pointer;" @click="searchShow=false">Cancel</div>
+          <div v-if="!searchShow" style="float:right;cursor:pointer;" @click.stop="listShow=false">Cancel</div>
         </div>
         <li v-if="searchShow" @click="playOnline(searchResult)" style="cursor:pointer;" v-for="(searchResult,index) in searchResults">
           <div class="music-name" v-html="searchResult.SongName"></div>
@@ -47,7 +47,7 @@
   </div>
 </template>
 <script>
-//ios不自动播放
+//ios does not automatically play
 function audioAutoPlay(id) {
   var audio = document.getElementById(id),
     play = function() {
@@ -63,7 +63,7 @@ function audioAutoPlay(id) {
   }, false);
   document.addEventListener("touchstart", play, false);
 }
-//判断返回的音乐数据时候有空值
+//Judge the return of the music data free value
 function validateFilePath(arr) {
   for (var x = 0; x < arr.length; x++) {
     if (arr[x].AlbumPrivilege == 5) {
@@ -74,22 +74,22 @@ function validateFilePath(arr) {
   return arr;
 }
 
-//音乐对象
+//Music object
 function Music() {
   var audio = document.getElementById("audio");
-  //设置音量
+  //Set the volume
   this.setVoice = function(voice) {
     audio.volume = voice / 100;
   }
-  //设置播放进度
+  //Set the playback progress
   this.setLength = function(length, duration) {
     audio.currentTime = length * duration / 100;
   }
-  //修改播放模式
+  //Modify play mode
   this.modifyModel = function(model) {
     window.localStorage.setItem("model", model);
   }
-  //播放和暂停
+  //Play and pause
   this.setToggle = function(boolean) {
     if (boolean) {
       audio.play();
@@ -97,21 +97,21 @@ function Music() {
       audio.pause();
     }
   }
-  //更新播放列表
+  //Update playlist
   this.modify = function(list) {
     window.localStorage.setItem("list", JSON.stringify(list));
   }
-  //获取音乐列表
+  //Get music list
   this.getList = function() {
     var list = JSON.parse(window.localStorage.getItem("list") || '[]');
     return list;
   }
-  //获取播放模式
+  //Get the play mode
   this.getModel = function() {
     var model = JSON.parse(window.localStorage.getItem("model") || 1);
     return model;
   }
-  //重新播放
+  //Replay
   this.reload = function() {
     audio.load();
   }
@@ -166,7 +166,7 @@ export default {
       var musicName = this.musicName;
       var protocol = this.protocol;
       this.searchShow = true;
-      //酷狗音乐
+      // kugou music
       var search = this.$http.jsonp(protocol+"://songsearch.kugou.com/song_search_v2?_callback=jQuery191034642999175022426_1489023388639&keyword=" + musicName + "&page=1&pagesize=10&userid=-1&clientver=&platform=WebFilter&tag=em&filter=2&iscorrection=1&privilege_filter=0&_=1489023388641")
       search.then(data => {
         if (data.body.error_code == 0) {
@@ -174,14 +174,15 @@ export default {
           this.searchResults = list;
         }
       }).catch(data => {
-        alert("获取列表失败")
+        alert("Failed to get list")
       })
     },
-    playOnline(e) { //播放音乐
+    // play music
+    playOnline(e) {
       var protocol = this.protocol;
       var url;
       if(protocol==undefined){
-        throw "请输入请求协议格式(http或https)!"
+        throw "Please enter the request protocol format(http or https)!"
       }else if(protocol == 'http'){
         url = 'http://blog.166zx.com/edit/home/GetMusicInfo?hash=' + e.FileHash;
       }else{
@@ -198,34 +199,34 @@ export default {
           this.musicHash = e.FileHash;
           this.audioToggle = true;
           if (musicInfo.play_url == "") {
-            alert("很遗憾！播放源地址无效！");
+            alert("Unfortunately! Invalid source address！");
           }
         }
       }).catch(data => {})
     },
-    addTempList(e) { //添加到播放列表
+    addTempList(e) { // Add to playlist
       var list = this.onlineLists;
       list.unshift(e);
       this.onlineLists = list;
       var music = new Music();
       music.modify(list);
     },
-    removeTempList(e, index) { //从播放列表删除
+    removeTempList(e, index) { // Remove from playlist
       var list = this.onlineLists;
       list.splice(index, 1);
       this.onlineLists = list;
       var music = new Music();
       music.modify(list);
     },
-    changeVoice() { //调节音量
+    changeVoice() { // volume adjustment
       var music = new Music();
       music.setVoice(this.voice);
     },
-    changeLength() { //调节进度
+    changeLength() { // Adjust the progress
       var music = new Music();
       music.setLength(this.length, this.duration);
     },
-    changeModel() { //修改播放模式
+    changeModel() { // Modify play mode
       var music = new Music();
       this.modelImg = (this.modelImg + 1) % 3 + 1;
       music.modifyModel(this.modelImg);
@@ -234,24 +235,24 @@ export default {
       var vm = this;
       var music = new Music();
       switch (vm.modelImg) {
-        case 1: //单曲循环
+        case 1: // Single cycle
           music.reload();
           break;
-        case 2: //列表循环
+        case 2: // List loop
           var list = vm.onlineLists;
-          if (list.length > 0) { //判断是否有缓存列表
-            //判断当前音乐在列表中的位置
+          if (list.length > 0) { // Determine if there is a cache list
+            // Determine the current position of the music in the list
             for (var x = 0; x < list.length; x++) {
               if (list[x].FileHash == vm.musicHash) {
-                if (!e) { //往后下一首
-                  if (x !== list.length - 1) { //判断是否是列表最后一首
+                if (!e) { // Next to the next one
+                  if (x !== list.length - 1) { // Determine whether the list is the last one
                     vm.playOnline(list[x + 1])
-                  } else { //返回第一首
+                  } else { // Return to the first song
                     vm.playOnline(list[0])
                   }
-                } else { //往前下一首
-                  if (x == 0) { //判断是否是列表第一首
-                    vm.playOnline(list[list.length - 1]) //返回列表最后一首
+                } else { // Go ahead and down
+                  if (x == 0) { // Determine whether the list is the first
+                    vm.playOnline(list[list.length - 1]) // Return to the last list
                   } else {
                     vm.playOnline(list[x - 1])
                   }
@@ -263,9 +264,9 @@ export default {
             music.reload();
           }
           break;
-        case 3: //随机播放
+        case 3: // Shuffle Playback
           var list = vm.onlineLists;
-          if (list.length > 0) { //判断是否有缓存列表
+          if (list.length > 0) { // Determine if there is a cache list
             var num = Math.floor(Math.random() * list.length);
             vm.playOnline(list[num])
           } else {
@@ -274,7 +275,7 @@ export default {
           break;
       }
     },
-    bubbling(event) { //修复 click-outside 阻止事件向上冒泡。
+    bubbling(event) { // Fix click-outside to prevent the event bubbling up.
       var flag = false;
       for (var x = 0; x < event.path.length; x++) {
         if (event.path[x].className == "music-list-result") {
@@ -291,35 +292,35 @@ export default {
   },
   mounted: function() {
     var music = new Music();
-    //获取缓存内容
+    // Get the contents of the cache
     var list = music.getList();
     var model = music.getModel();
-    //赋值给vue实例
+    // Assign to vue instance
     this.modelImg = model;
     this.onlineLists = list;
-    //判断应该播放缓存还是默认歌曲
+    // Determine whether the cache should be played or the default song
     if (list.length !== 0) {
       this.playOnline(list[0]);
     } else {
       var e = {
         FileHash: this.musicHash,
-        Duration: 213 //默认长度是fade的长度
+        Duration: 213 // The default length is the length of fade
       }
       this.playOnline(e);
     }
-    //监听音乐正在播放
+    // Listen to music is playing
     var audio = document.getElementById("audio");
     var vm = this;
     audio.addEventListener("timeupdate", function() {
-      //修改目前的ranger位置
+      // Modify the current ranger location
       vm.length = audio.currentTime * 100 / vm.duration;
-      //修改目前的播放时长
+      // Modify the current play duration
       vm.nowDuration = audio.currentTime;
     }, true);
     audioAutoPlay("audio");
   },
   watch: {
-    //监听播放进度
+    // Listen to playback progress
     "length": function(val, oldVal) {
       if (val > 99) {
         this.play(true);
